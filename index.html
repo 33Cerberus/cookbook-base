@@ -150,24 +150,28 @@ createApp({
   },
   methods: {
     async fetchRecipes(){
-      try {
-        this.loadingList = true;
-        this.error = '';
-        const res = await fetch(this.apiListUrl, { headers: { 'Accept': 'application/vnd.github+json' }});
-        if(!res.ok){
-          throw new Error(`GitHub API ${res.status} ${res.statusText}`);
-        }
-        const data = await res.json();
-        this.recipeFiles = (Array.isArray(data) ? data : []).filter(f => f.type === 'file' && /\.md$/i.test(f.name));
-        if(this.recipeFiles.length && !this.selectedName){
-          this.selectRecipe(this.recipeFiles[0].name);
-        }
-      } catch(e){
-        this.error = e.message || String(e);
-      } finally {
-        this.loadingList = false;
-      }
-    },
+  try {
+    this.loadingList = true;
+    this.error = '';
+    const url = `https://api.github.com/repos/${this.owner}/${this.repo}/git/trees/${this.branch}?recursive=1`;
+    const res = await fetch(url, { headers: { 'Accept': 'application/vnd.github+json' }});
+    if(!res.ok){
+      throw new Error(`GitHub API ${res.status} ${res.statusText}`);
+    }
+    const data = await res.json();
+    this.recipeFiles = data.tree
+      .filter(f => f.path.startsWith(this.recipesDir + '/') && f.path.endsWith('.md'))
+      .map(f => ({ name: f.path.replace(this.recipesDir + '/', ''), path: f.path }));
+
+    if(this.recipeFiles.length && !this.selectedName){
+      this.selectRecipe(this.recipeFiles[0].name);
+    }
+  } catch(e){
+    this.error = e.message || String(e);
+  } finally {
+    this.loadingList = false;
+  }
+}
     async selectRecipe(name){
       if(!name) return;
       this.selectedName = name;
