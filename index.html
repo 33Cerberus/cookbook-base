@@ -178,7 +178,7 @@ createApp({
         this.loadingRecipe = true;
         this.error = '';
         const pageBase = window.location.origin + this.basePath;
-        const url = `${pageBase}/${this.recipesDir}/${encodeURIComponent(name)}`;
+        const url = `https://raw.githubusercontent.com/${this.owner}/${this.repo}/${this.branch}/${this.recipesDir}/${encodeURIComponent(name)}`;
         const res = await fetch(url);
         if(!res.ok){
           throw new Error(`Nie udało się pobrać pliku: ${name} (${res.status})`);
